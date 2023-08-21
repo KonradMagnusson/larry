@@ -1,7 +1,8 @@
 local Module = {}
 
 Module.defaults = {
-	available_presets = function() return "" end
+	available_presets = function() return "" end,
+	selected_preset = "some_default_cmake_preset",
 }
 
 
@@ -9,17 +10,27 @@ Module.defaults = {
 
 
 Module.SelectPreset = function()
-	vim.notify( "Selecting preset!" .. Module.defaults.available_presets(), vim.log.levels.INFO )
+	vim.notify( "Selecting preset!", vim.log.levels.INFO )
 end
 
 
 Module.Configure = function()
-	vim.notify( "Configure!" .. Module.defaults.available_presets(), vim.log.levels.INFO )
+	vim.notify( "Configuring " .. Module.defaults.selected_preset, vim.log.levels.INFO )
 end
 
 
 Module.Build = function()
-	vim.notify( "Build!" .. Module.defaults.available_presets(), vim.log.levels.INFO )
+	vim.notify( "Building " .. Module.defaults.selected_preset, vim.log.levels.INFO )
+
+	-- TODO: Ensure the output ends up being visible somewhere - that could prove useful...
+	--vim.fn.systemlist("docker run --rm -t success")
+	vim.fn.systemlist("docker run --rm -t fail")
+
+	if vim.v.shell_error == 0 then
+		vim.notify( "Success!", vim.log.levels.INFO )
+	else
+		vim.notify( "Build failed!", vim.log.levels.ERROR )
+	end
 end
 
 
