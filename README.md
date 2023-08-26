@@ -10,7 +10,7 @@ Because switching to a different terminal to do things is a hassle.
 ### Installation
 Using [Packer](https://github.com/wbthomason/packer.nvim):   
 ```lua
-use "konradmagnusson/larry"
+use { "konradmagnusson/larry", tag="v1.0.0" }
 ```
 
 ### Configuration
