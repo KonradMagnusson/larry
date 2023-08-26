@@ -29,6 +29,7 @@ The parameters are as follows:
 ```
     available_presets:      function( cwd )
                                 cwd: Neovim's current working directory
+                                return: a list of strings
     default_preset:         string
                                 Pretty self-explanatory.
                                 Used if nothing is explicitly selected.
@@ -39,7 +40,7 @@ The parameters are as follows:
 ```
 
 #### Example mappings
-```
+```lua
 -- larry
 nvim_set_keymap("n", "<leader>P", "<CMD>SelectPreset<CR>", { noremap = true })
 nvim_set_keymap("n", "<leader>C", "<CMD>Configure<CR>", { noremap = true })
