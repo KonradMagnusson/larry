@@ -1,7 +1,7 @@
 local Module = {}
 
 Module.config = {
-	available_presets = function( cwd ) return "" end,
+	available_presets = function( cwd ) return {} end,
 	default_preset = "release",
 	build_command = "build %s",
 	configure_command = "configure %s",
@@ -23,7 +23,7 @@ local function _warn( msg ) vim.notify( msg, vim.log.levels.WARN ) end
 local function _error( msg ) vim.notify( msg, vim.log.levels.ERROR ) end
 
 
-local _GetPreset = function()
+Module.GetSelectedPreset = function()
 	if vim.g.LARRY_SELECTED_PRESET ~= nil then
 		return vim.g.LARRY_SELECTED_PRESET
 	end
@@ -31,12 +31,15 @@ local _GetPreset = function()
 end
 
 Module.SelectPreset = function()
-	-- local presets = { "release", "debug", "release-lto", "debug-Og" }
-	local presets = { "test", "clean" }
-	-- TODO: get presets from available_presets
+	local presets = Module.config.available_presets( vim.fn.getcwd() )
+
+	if #presets == 0 then
+		_error( "No presets available! Was setup() called?" )
+		return
+	end
 
 	local apply_selection = function( preset )
-		vim.notify( "Selected preset " .. preset, vim.log.levels.INFO)
+		_info( "Selected preset " .. preset)
 		vim.g.LARRY_SELECTED_PRESET = preset
 	end
 
@@ -157,7 +160,7 @@ Module.Configure = function()
 	vim.api.nvim_buf_set_option( buf, "modifiable", false )
 
 	_jobs.configure = vim.fn.jobstart(
-		string.format( Module.config.configure_command, vim.g.LARRY_SELECTED_PRESET ),
+		string.format( Module.config.configure_command, Module.GetSelectedPreset() ),
 		{
 			detach = false, -- TODO: this could be nice to have true at some point in the future
 			on_stdout = on_stdout,
@@ -199,14 +202,14 @@ Module.Build = function()
 			_error( "Build failed!" )
 			return
 		end
-		_info( "Build done!" )
+		_info( "Build finished!" )
 	end
 
 	vim.api.nvim_buf_set_option( buf, "modifiable", true )
 	vim.api.nvim_buf_call( _buffers.build, function( _ ) vim.cmd( "normal! ggdG" ) end )
 	vim.api.nvim_buf_set_option( buf, "modifiable", false )
 	_jobs.build = vim.fn.jobstart(
-		string.format( Module.config.build_command, vim.g.LARRY_SELECTED_PRESET ),
+		string.format( Module.config.build_command, Module.GetSelectedPreset() ),
 		{
 			detach = false, -- TODO: this could be nice to have true at some point in the future
 			on_stdout = on_stdout,
