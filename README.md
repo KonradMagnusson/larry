@@ -42,11 +42,11 @@ The parameters are as follows:
 #### Example mappings
 ```lua
 -- larry
-nvim_set_keymap("n", "<leader>P", "<CMD>SelectPreset<CR>", { noremap = true })
-nvim_set_keymap("n", "<leader>C", "<CMD>Configure<CR>", { noremap = true })
-nvim_set_keymap("n", "<leader>c", "<CMD>ToggleConfigureView<CR>", { noremap = true })
-nvim_set_keymap("n", "<leader>B", "<CMD>Build<CR>", { noremap = true })
-nvim_set_keymap("n", "<leader>b", "<CMD>ToggleBuildView<CR>", { noremap = true })
+nvim_set_keymap("n", "<leader>lP", "<CMD>SelectPreset<CR>", { noremap = true })
+nvim_set_keymap("n", "<leader>lC", "<CMD>Configure<CR>", { noremap = true })
+nvim_set_keymap("n", "<leader>lc", "<CMD>ToggleConfigureView<CR>", { noremap = true })
+nvim_set_keymap("n", "<leader>lB", "<CMD>Build<CR>", { noremap = true })
+nvim_set_keymap("n", "<leader>lb", "<CMD>ToggleBuildView<CR>", { noremap = true })
 ```
 
 ### Usage
@@ -64,5 +64,5 @@ In no particular order:
 - [ ] Goto file/line on compilation errors   
 - [ ] Colors in Configure View   
 - [ ] Colors in Build View   
-- [ ] Functionality for getting the current compilation target, and what progress it's at   
+- [ ] Functionality for getting the current compilation target, and what progress it's at, e.g. for use in |statusline|   
 - [ ] Display current preset in the status line?   
