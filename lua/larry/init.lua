@@ -143,7 +143,7 @@ Module.Configure = function()
 
 		if vim.api.nvim_get_current_buf() == buf then
 			vim.api.nvim_buf_set_option( buf, "modified", false )
-			vim.cmd( "normal! G" )
+			vim.cmd( "keepjumps normal! G" )
 		end
 	end
 	local on_exit = function( _, exit_code, _ )
@@ -156,7 +156,7 @@ Module.Configure = function()
 	end
 
 	vim.api.nvim_buf_set_option( buf, "modifiable", true )
-	vim.api.nvim_buf_call( _buffers.configure, function( _ ) vim.cmd( "normal! ggdG" ) end )
+	vim.api.nvim_buf_call( _buffers.configure, function( _ ) vim.cmd( "keepjumps normal! ggdG" ) end )
 	vim.api.nvim_buf_set_option( buf, "modifiable", false )
 
 	_jobs.configure = vim.fn.jobstart(
@@ -193,7 +193,7 @@ Module.Build = function()
 
 		if vim.api.nvim_get_current_buf() == buf then
 			vim.api.nvim_buf_set_option( buf, "modified", false )
-			vim.cmd( "normal! G" )
+			vim.cmd( "keepjumps normal! G" )
 		end
 	end
 	local on_exit = function( _, exit_code, _ )
@@ -206,7 +206,7 @@ Module.Build = function()
 	end
 
 	vim.api.nvim_buf_set_option( buf, "modifiable", true )
-	vim.api.nvim_buf_call( _buffers.build, function( _ ) vim.cmd( "normal! ggdG" ) end )
+	vim.api.nvim_buf_call( _buffers.build, function( _ ) vim.cmd( "keepjumps normal! ggdG" ) end )
 	vim.api.nvim_buf_set_option( buf, "modifiable", false )
 	_jobs.build = vim.fn.jobstart(
 		string.format( Module.config.build_command, Module.GetSelectedPreset() ),
