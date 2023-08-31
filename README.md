@@ -10,7 +10,7 @@ Because switching to a different terminal to do things is a hassle.
 ### Installation
 Using [Packer](https://github.com/wbthomason/packer.nvim):   
 ```lua
-use { "konradmagnusson/larry", tag="v1.0.0" }
+use { "konradmagnusson/larry", tag="v1.0.1" }
 ```
 
 ### Configuration
@@ -42,11 +42,11 @@ The parameters are as follows:
 #### Example mappings
 ```lua
 -- larry
-nvim_set_keymap("n", "<leader>lP", "<CMD>SelectPreset<CR>", { noremap = true })
-nvim_set_keymap("n", "<leader>lC", "<CMD>Configure<CR>", { noremap = true })
-nvim_set_keymap("n", "<leader>lc", "<CMD>ToggleConfigureView<CR>", { noremap = true })
-nvim_set_keymap("n", "<leader>lB", "<CMD>Build<CR>", { noremap = true })
-nvim_set_keymap("n", "<leader>lb", "<CMD>ToggleBuildView<CR>", { noremap = true })
+nvim_set_keymap("n", "<leader>lP", "<CMD>LarrySelectPreset<CR>", { noremap = true })
+nvim_set_keymap("n", "<leader>lC", "<CMD>LarryConfigure<CR>", { noremap = true })
+nvim_set_keymap("n", "<leader>lc", "<CMD>LarryToggleConfigureView<CR>", { noremap = true })
+nvim_set_keymap("n", "<leader>lB", "<CMD>LarryBuild<CR>", { noremap = true })
+nvim_set_keymap("n", "<leader>lb", "<CMD>LarryToggleBuildView<CR>", { noremap = true })
 ```
 
 ### Usage
