@@ -7,15 +7,17 @@ Module.config = {
 	configure_command = "configure %s",
 }
 
-local _jobs = {
-	configure = nil,
-	build = nil
-}
+local _state = {
+	jobs = {
+		configure = nil,
+		build = nil
+	},
 
-local _buffers = {
-	stack = {},
-	configure = -1,
-	build = -1
+	buffers = {
+		stack = {},
+		configure = -1,
+		build = -1
+	}
 }
 
 local function _info( msg ) vim.notify( msg, vim.log.levels.INFO ) end
@@ -48,7 +50,7 @@ end
 
 
 Module.ToggleConfigureView = function()
-	local configure_buf = _buffers.configure
+	local configure_buf = _state.buffers.configure
 
 	if configure_buf == -1 then
 		_error( "Failed to toggle configure view: setup() has not been invoked yet!" )
@@ -58,7 +60,7 @@ Module.ToggleConfigureView = function()
 	local set_buf = vim.api.nvim_set_current_buf
 
 	local cur_buf = vim.api.nvim_get_current_buf()
-	local prev_buf = _buffers.stack[#_buffers.stack]
+	local prev_buf = _state.buffers.stack[#_state.buffers.stack]
 
 	if cur_buf == configure_buf then
 		if prev_buf == nil then
@@ -66,27 +68,27 @@ Module.ToggleConfigureView = function()
 			return
 		end
 		set_buf(prev_buf)
-		table.remove( _buffers.stack, #_buffers.stack )
+		table.remove( _state.buffers.stack, #_state.buffers.stack )
 		return
 	end
 
 	-- Is the configure buffer already on the stack?
 	-- Remove it and set it as active.
-	for idx, tab in pairs( _buffers.stack ) do
+	for idx, tab in pairs( _state.buffers.stack ) do
 		if tab == configure_buf then
-			table.remove( _buffers.stack, idx )
+			table.remove( _state.buffers.stack, idx )
 			set_buf( configure_buf )
 			return
 		end
 	end
 
-	table.insert( _buffers.stack, cur_buf )
-	set_buf( _buffers.configure )
+	table.insert( _state.buffers.stack, cur_buf )
+	set_buf( _state.buffers.configure )
 end
 
 
 Module.ToggleBuildView = function()
-	local build_buf = _buffers.build
+	local build_buf = _state.buffers.build
 
 	if build_buf == -1 then
 		_error( "Failed to toggle build view: setup() has not been invoked yet!" )
@@ -96,7 +98,7 @@ Module.ToggleBuildView = function()
 	local set_buf = vim.api.nvim_set_current_buf
 
 	local cur_buf = vim.api.nvim_get_current_buf()
-	local prev_buf = _buffers.stack[#_buffers.stack]
+	local prev_buf = _state.buffers.stack[#_state.buffers.stack]
 
 	if cur_buf == build_buf then
 		if prev_buf == nil then
@@ -104,33 +106,33 @@ Module.ToggleBuildView = function()
 			return
 		end
 		set_buf(prev_buf)
-		table.remove( _buffers.stack, #_buffers.stack )
+		table.remove( _state.buffers.stack, #_state.buffers.stack )
 		return
 	end
 
 	-- Is the build buffer already on the stack?
 	-- Remove it and set it as active.
-	for idx, tab in pairs( _buffers.stack ) do
+	for idx, tab in pairs( _state.buffers.stack ) do
 		if tab == build_buf then
-			table.remove( _buffers.stack, idx )
+			table.remove( _state.buffers.stack, idx )
 			set_buf( build_buf )
 			return
 		end
 	end
 
-	table.insert( _buffers.stack, cur_buf )
-	set_buf( _buffers.build )
+	table.insert( _state.buffers.stack, cur_buf )
+	set_buf( _state.buffers.build )
 end
 
 
 Module.Configure = function()
-	if _jobs.configure ~= nil then
+	if _state.jobs.configure ~= nil then
 		_error( "Configure in progress!" )
 		return
 	end
 
 	_info( "Running configure..." )
-	local buf = _buffers.configure
+	local buf = _state.buffers.configure
 
 	local on_stdout = function( _, data, _ )
 		for _, line in pairs(data) do
@@ -147,7 +149,7 @@ Module.Configure = function()
 		end
 	end
 	local on_exit = function( _, exit_code, _ )
-		_jobs.configure = nil
+		_state.jobs.configure = nil
 		if exit_code  ~= 0 then
 			_error( "Configure failed!" )
 			return
@@ -156,10 +158,10 @@ Module.Configure = function()
 	end
 
 	vim.api.nvim_buf_set_option( buf, "modifiable", true )
-	vim.api.nvim_buf_call( _buffers.configure, function( _ ) vim.cmd( "keepjumps normal! ggdG" ) end )
+	vim.api.nvim_buf_call( _state.buffers.configure, function( _ ) vim.cmd( "keepjumps normal! ggdG" ) end )
 	vim.api.nvim_buf_set_option( buf, "modifiable", false )
 
-	_jobs.configure = vim.fn.jobstart(
+	_state.jobs.configure = vim.fn.jobstart(
 		string.format( Module.config.configure_command, Module.GetSelectedPreset() ),
 		{
 			detach = false, -- TODO: this could be nice to have true at some point in the future
@@ -174,13 +176,13 @@ end
 
 
 Module.Build = function()
-	if _jobs.build ~= nil then
+	if _state.jobs.build ~= nil then
 		_error( "Build in progress!" )
 		return
 	end
 
 	_info( "Running build..." )
-	local buf = _buffers.build
+	local buf = _state.buffers.build
 
 	local on_stdout = function( _, data, _ )
 		for _, line in pairs(data) do
@@ -197,7 +199,7 @@ Module.Build = function()
 		end
 	end
 	local on_exit = function( _, exit_code, _ )
-		_jobs.build = nil
+		_state.jobs.build = nil
 		if exit_code  ~= 0 then
 			_error( "Build failed!" )
 			return
@@ -206,9 +208,9 @@ Module.Build = function()
 	end
 
 	vim.api.nvim_buf_set_option( buf, "modifiable", true )
-	vim.api.nvim_buf_call( _buffers.build, function( _ ) vim.cmd( "keepjumps normal! ggdG" ) end )
+	vim.api.nvim_buf_call( _state.buffers.build, function( _ ) vim.cmd( "keepjumps normal! ggdG" ) end )
 	vim.api.nvim_buf_set_option( buf, "modifiable", false )
-	_jobs.build = vim.fn.jobstart(
+	_state.jobs.build = vim.fn.jobstart(
 		string.format( Module.config.build_command, Module.GetSelectedPreset() ),
 		{
 			detach = false, -- TODO: this could be nice to have true at some point in the future
@@ -222,15 +224,15 @@ end
 
 Module.setup = function( config )
 	Module.config = vim.tbl_deep_extend( "force", {}, Module.config, config or {} )
-	_buffers.configure = vim.api.nvim_create_buf( false, false )
-	vim.api.nvim_buf_set_name( _buffers.configure, "larry_configure" )
-	vim.api.nvim_buf_set_option( _buffers.configure, "buftype", "nowrite" )
-	vim.api.nvim_buf_set_option( _buffers.configure, "scrollback", 1000 )
+	_state.buffers.configure = vim.api.nvim_create_buf( false, false )
+	vim.api.nvim_buf_set_name( _state.buffers.configure, "larry_configure" )
+	vim.api.nvim_buf_set_option( _state.buffers.configure, "buftype", "nowrite" )
+	vim.api.nvim_buf_set_option( _state.buffers.configure, "scrollback", 1000 )
 
-	_buffers.build = vim.api.nvim_create_buf( false, false )
-	vim.api.nvim_buf_set_name( _buffers.build, "larry_build" )
-	vim.api.nvim_buf_set_option( _buffers.build, "buftype", "nowrite" )
-	vim.api.nvim_buf_set_option( _buffers.build, "scrollback", 10000 )
+	_state.buffers.build = vim.api.nvim_create_buf( false, false )
+	vim.api.nvim_buf_set_name( _state.buffers.build, "larry_build" )
+	vim.api.nvim_buf_set_option( _state.buffers.build, "buftype", "nowrite" )
+	vim.api.nvim_buf_set_option( _state.buffers.build, "scrollback", 10000 )
 end
 
 
