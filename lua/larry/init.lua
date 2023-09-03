@@ -17,12 +17,25 @@ local _state = {
 		stack = {},
 		configure = -1,
 		build = -1
+	},
+
+	buildstatus = {
+		percent = nil,
+		target = nil
 	}
 }
 
 local function _info( msg ) vim.notify( msg, vim.log.levels.INFO ) end
 local function _warn( msg ) vim.notify( msg, vim.log.levels.WARN ) end
 local function _error( msg ) vim.notify( msg, vim.log.levels.ERROR ) end
+
+
+Module.GetBuildStatusPerc = function()
+	return _state.buildstatus.percent
+end
+Module.GetBuildStatusTarget = function()
+	return _state.buildstatus.target
+end
 
 
 Module.GetSelectedPreset = function()
@@ -184,12 +197,24 @@ Module.Build = function()
 	_info( "Running build..." )
 	local buf = _state.buffers.build
 
+	local update_build_state = function( line )
+		local percentage, target = string.match(line, "%[%s+(%d+)%%%].*/(.*%.o)")
+		if string.len( percentage ) >= 1 then
+			_state.buildstatus.percent = percentage
+		end
+
+		if string.len( target ) >= 1 then
+			_state.buildstatus.target = target
+		end
+	end
+
 	local on_stdout = function( _, data, _ )
 		for _, line in pairs(data) do
 			if line ~= "" then
 				vim.api.nvim_buf_set_option( buf, "modifiable", true )
 				vim.fn.appendbufline( buf, "$", line )
 				vim.api.nvim_buf_set_option( buf, "modifiable", false )
+				update_build_state( line )
 			end
 		end
 
