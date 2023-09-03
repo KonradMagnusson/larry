@@ -8,9 +8,28 @@ Because switching to a different terminal to do things is a hassle.
 
 ## How?
 ### Installation
+
 Using [Packer](https://github.com/wbthomason/packer.nvim):   
 ```lua
-use { "konradmagnusson/larry", tag="v1.0.1" }
+use { "konradmagnusson/larry" }
+```
+
+Using [Lazy](https://github.com/folke/lazy.nvim):   
+```lua
+{
+    "konradmagnusson/larry",
+    dependencies = {
+        "rcarriga/nvim-notify", -- optional
+    }
+    opts = {
+        available_presets = function( cwd )
+                return { "release", "debug" }
+            end,
+        default_preset = "release",
+        build_command = "build %s",
+        configure_command = "configure %s"
+    }
+}
 ```
 
 ### Configuration
@@ -50,11 +69,11 @@ nvim_set_keymap("n", "<leader>lb", "<CMD>LarryToggleBuildView<CR>", { noremap = 
 ```
 
 ### Usage
-* Select a preset (or live with your default setting) using the `SelectPreset` command and/or Larry's exposed `SelectPreset()` function.
-* Invoke either `Configure` or `Build` using the commands, or through the lua functions, e.g. `require("larry").Configure()`.
-* View the outputs of `Configure` and `Build` using the `ToggleConfigureView` and `ToggleBuildView` commands (also available in lua). These buffers follow the output of the command, and clear if you rerun `Configure`/`Build`
+* Select a preset (or live with your default setting) using the `LarrySelectPreset` command and/or Larry's exposed `SelectPreset()` function.
+* Invoke either `LarryConfigure` or `LarryBuild` using the commands, or through the lua functions, e.g. `require("larry").Configure()`.
+* View the outputs of `LarryConfigure` and `LarryBuild` using the `LarryToggleConfigureView` and `LarryToggleBuildView` commands (similarly available in lua). These buffers follow the output of the command, and clear if you rerun `LarryConfigure`/`LarryBuild`
 
-There is also a `GetSelectedPreset` command (and lua function) that does what it says on the can.
+There is also a `LarryGetSelectedPreset` command (and lua function) that does what it says on the can.
 
 
 ## Roadmap
