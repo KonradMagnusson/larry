@@ -199,11 +199,11 @@ Module.Build = function()
 
 	local update_build_state = function( line )
 		local percentage, target = string.match(line, "%[%s+(%d+)%%%].*/(.*%.o)")
-		if string.len( percentage ) >= 1 then
+		if percentage ~= nil and string.len( percentage ) >= 1 then
 			_state.buildstatus.percent = percentage
 		end
 
-		if string.len( target ) >= 1 then
+		if target ~= nil and string.len( target ) >= 1 then
 			_state.buildstatus.target = target
 		end
 	end
