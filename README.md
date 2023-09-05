@@ -9,17 +9,13 @@ Because switching to a different terminal to do things is a hassle.
 ## How?
 ### Installation
 
-Using [Packer](https://github.com/wbthomason/packer.nvim):   
-```lua
-use { "konradmagnusson/larry" }
-```
-
-Using [Lazy](https://github.com/folke/lazy.nvim):   
+E.g. using [Lazy](https://github.com/folke/lazy.nvim):   
 ```lua
 {
     "konradmagnusson/larry",
     dependencies = {
-        "rcarriga/nvim-notify", -- optional
+        "rcarriga/nvim-notify", -- optional. Enables nicer notifications.
+        "norcalli/nvim-terminal.lua", -- optional. Enables ASCII color code support in the build/configure views.
     }
     opts = {
         available_presets = function( cwd )
@@ -81,7 +77,7 @@ There is also a `LarryGetSelectedPreset` command (and lua function) that does wh
 In no particular order:
 
 - [ ] Goto file/line on compilation errors   
-- [ ] Colors in Configure View   
-- [ ] Colors in Build View   
+- [x] Colors in Configure View   
+- [x] Colors in Build View   
 - [ ] Functionality for getting the current compilation target, and what progress it's at, e.g. for use in |statusline|   
 - [ ] Display current preset in the status line?   

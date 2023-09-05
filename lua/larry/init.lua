@@ -22,7 +22,9 @@ local _state = {
 	buildstatus = {
 		percent = nil,
 		target = nil
-	}
+	},
+
+	has_terminal_plugin = false,
 }
 
 local function _info( msg ) vim.notify( msg, vim.log.levels.INFO ) end
@@ -150,6 +152,9 @@ Module.Configure = function()
 	local on_stdout = function( _, data, _ )
 		for _, line in pairs(data) do
 			if line ~= "" then
+				if _state.has_terminal_plugin then
+					line = string.sub(line, 0, #line - 1)
+				end
 				vim.api.nvim_buf_set_option( buf, "modifiable", true )
 				vim.fn.appendbufline( buf, "$", line )
 				vim.api.nvim_buf_set_option( buf, "modifiable", false )
@@ -178,6 +183,7 @@ Module.Configure = function()
 		string.format( Module.config.configure_command, Module.GetSelectedPreset() ),
 		{
 			detach = false, -- TODO: this could be nice to have true at some point in the future
+			pty = _state.has_terminal_plugin,
 			on_stdout = on_stdout,
 			on_stderr = on_stdout,
 			on_exit = on_exit
@@ -212,6 +218,9 @@ Module.Build = function()
 		for _, line in pairs(data) do
 			if line ~= "" then
 				vim.api.nvim_buf_set_option( buf, "modifiable", true )
+				if _state.has_terminal_plugin then
+					line = string.sub(line, 0, #line - 1)
+				end
 				vim.fn.appendbufline( buf, "$", line )
 				vim.api.nvim_buf_set_option( buf, "modifiable", false )
 				update_build_state( line )
@@ -239,6 +248,7 @@ Module.Build = function()
 		string.format( Module.config.build_command, Module.GetSelectedPreset() ),
 		{
 			detach = false, -- TODO: this could be nice to have true at some point in the future
+			pty = _state.has_terminal_plugin,
 			on_stdout = on_stdout,
 			on_stderr = on_stdout,
 			on_exit = on_exit
@@ -258,6 +268,22 @@ Module.setup = function( config )
 	vim.api.nvim_buf_set_name( _state.buffers.build, "larry_build" )
 	vim.api.nvim_buf_set_option( _state.buffers.build, "buftype", "nowrite" )
 	vim.api.nvim_buf_set_option( _state.buffers.build, "scrollback", 10000 )
+
+	_state.has_terminal_plugin, _ = pcall(require, "terminal")
+
+	if _state.has_terminal_plugin then
+		vim.api.nvim_create_autocmd({ "BufWinEnter", "WinEnter" }, {
+			callback = function( _ )
+				local bufname = vim.api.nvim_buf_get_name(0)
+				local bikeshed = vim.fn.split(bufname, '/', false)
+				bufname = bikeshed[#bikeshed]
+				if bufname == "larry_build" or bufname == "larry_configure" then
+					require("terminal").setup()
+					vim.cmd("setl filetype=terminal")
+				end
+			end
+		})
+	end
 end
 
 
