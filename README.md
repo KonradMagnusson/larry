@@ -14,7 +14,7 @@ E.g. using [Lazy](https://github.com/folke/lazy.nvim):
 {
     "konradmagnusson/larry",
     dependencies = {
-        "rcarriga/nvim-notify", -- optional. Enables nicer notifications.
+        "rcarriga/nvim-notify",
         "norcalli/nvim-terminal.lua", -- optional. Enables ASCII color code support in the build/configure views.
     }
     opts = {
