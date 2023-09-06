@@ -27,9 +27,30 @@ local _state = {
 	has_terminal_plugin = false,
 }
 
-local function _info( msg ) vim.notify( msg, vim.log.levels.INFO ) end
-local function _warn( msg ) vim.notify( msg, vim.log.levels.WARN ) end
-local function _error( msg ) vim.notify( msg, vim.log.levels.ERROR ) end
+
+local _log = {
+	build_info = function( msg, timeout, replace )
+			return vim.notify( msg, vim.log.levels.INFO,
+				{
+					title="Larry",
+					icon="󰣪",
+					timeout = timeout,
+					replace = replace
+				})
+		end,
+	configure_info = function( msg, timeout, replace )
+			return vim.notify( msg, vim.log.levels.INFO,
+				{
+					title="Larry",
+					icon="󰒓",
+					timeout = timeout,
+					replace = replace
+				})
+		end,
+	info = function( msg ) vim.notify( msg, vim.log.levels.INFO ) end,
+	warn = function( msg ) vim.notify( msg, vim.log.levels.WARN ) end,
+	error = function( msg ) vim.notify( msg, vim.log.levels.ERROR ) end,
+}
 
 
 Module.GetBuildStatusPerc = function()
@@ -51,12 +72,12 @@ Module.SelectPreset = function()
 	local presets = Module.config.available_presets( vim.fn.getcwd() )
 
 	if #presets == 0 then
-		_error( "No presets available! Was setup() called?" )
+		_log.error( "No presets available! Was setup() called?" )
 		return
 	end
 
 	local apply_selection = function( preset )
-		_info( "Selected preset " .. preset)
+		_log.info( "Selected preset " .. preset)
 		vim.g.LARRY_SELECTED_PRESET = preset
 	end
 
@@ -68,7 +89,7 @@ Module.ToggleConfigureView = function()
 	local configure_buf = _state.buffers.configure
 
 	if configure_buf == -1 then
-		_error( "Failed to toggle configure view: setup() has not been invoked yet!" )
+		_log.error( "Failed to toggle configure view: setup() has not been invoked yet!" )
 		return
 	end
 
@@ -79,7 +100,7 @@ Module.ToggleConfigureView = function()
 
 	if cur_buf == configure_buf then
 		if prev_buf == nil then
-			_error( "Failed to toggle configure view: No other buffer was open!?" )
+			_log.error( "Failed to toggle configure view: No other buffer was open!?" )
 			return
 		end
 		set_buf(prev_buf)
@@ -106,7 +127,7 @@ Module.ToggleBuildView = function()
 	local build_buf = _state.buffers.build
 
 	if build_buf == -1 then
-		_error( "Failed to toggle build view: setup() has not been invoked yet!" )
+		_log.error( "Failed to toggle build view: setup() has not been invoked yet!" )
 		return
 	end
 
@@ -117,7 +138,7 @@ Module.ToggleBuildView = function()
 
 	if cur_buf == build_buf then
 		if prev_buf == nil then
-			_error( "Failed to toggle build view: No other buffer was open!?" )
+			_log.error( "Failed to toggle build view: No other buffer was open!?" )
 			return
 		end
 		set_buf(prev_buf)
@@ -142,11 +163,11 @@ end
 
 Module.Configure = function()
 	if _state.jobs.configure ~= nil then
-		_error( "Configure in progress!" )
+		_log.error( "Configure in progress!" )
 		return
 	end
 
-	_info( "Running configure..." )
+	local configuring_notification = _log.configure_info( "Configuring " .. Module.GetSelectedPreset() )
 	local buf = _state.buffers.configure
 
 	local on_stdout = function( _, data, _ )
@@ -169,10 +190,10 @@ Module.Configure = function()
 	local on_exit = function( _, exit_code, _ )
 		_state.jobs.configure = nil
 		if exit_code  ~= 0 then
-			_error( "Configure failed!" )
+			_log.error( "Configure failed!" )
 			return
 		end
-		_info( "Configure done!" )
+		_log.configure_info( "Configure done!", 1000, configuring_notification.id )
 	end
 
 	vim.api.nvim_buf_set_option( buf, "modifiable", true )
@@ -194,11 +215,12 @@ end
 
 Module.Build = function()
 	if _state.jobs.build ~= nil then
-		_error( "Build in progress!" )
+		_log.error( "Build in progress!" )
 		return
 	end
 
-	_info( "Running build..." )
+	local build_notification = _log.build_info( "Building " .. Module.GetSelectedPreset(), false )
+
 	local buf = _state.buffers.build
 
 	local update_build_state = function( line )
@@ -233,15 +255,16 @@ Module.Build = function()
 	local on_exit = function( _, exit_code, _ )
 		_state.jobs.build = nil
 		if exit_code  ~= 0 then
-			_error( "Build failed!" )
+			_log.error( "Build failed!" )
 			return
 		end
-		_info( "Build finished!" )
+		_log.build_info( "Build finished!", 1000, build_notification.id )
 	end
 
 	vim.api.nvim_buf_set_option( buf, "modifiable", true )
 	vim.api.nvim_buf_call( _state.buffers.build, function( _ ) vim.cmd( "keepjumps normal! ggdG" ) end )
 	vim.api.nvim_buf_set_option( buf, "modifiable", false )
+
 	_state.jobs.build = vim.fn.jobstart(
 		string.format( Module.config.build_command, Module.GetSelectedPreset() ),
 		{
