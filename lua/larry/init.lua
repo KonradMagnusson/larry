@@ -188,8 +188,6 @@ Module.Configure = function()
 			on_stderr = on_stdout,
 			on_exit = on_exit
 		})
-	-- Can't vim.fn.jobwait here, because that blocks the rest of neovim.
-	-- TODO: call this shit async, so that we can wait and do things properly
 end
 
 
@@ -253,14 +251,12 @@ Module.Build = function()
 			on_stderr = on_stdout,
 			on_exit = on_exit
 		})
-	-- Can't vim.fn.jobwait here, because that blocks the rest of neovim.
-	-- TODO: call this shit async, so that we can wait and do things properly
 end
 
 
 local _find_or_create_buffer = function( name )
 	local buf = vim.fn.bufadd( name )
-	vim.api.nvim_buf_set_name( buf, name )
+	vim.fn.bufload( buf )
 	vim.api.nvim_buf_set_option( buf, "buftype", "nowrite" )
 	vim.api.nvim_buf_set_option( buf, "modifiable", false )
 	return buf
