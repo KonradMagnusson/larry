@@ -257,17 +257,20 @@ Module.Build = function()
 	-- TODO: call this shit async, so that we can wait and do things properly
 end
 
+
+local _find_or_create_buffer = function( name )
+	local buf = vim.fn.bufadd( name )
+	vim.api.nvim_buf_set_name( buf, name )
+	vim.api.nvim_buf_set_option( buf, "buftype", "nowrite" )
+	vim.api.nvim_buf_set_option( buf, "modifiable", false )
+	return buf
+end
+
 Module.setup = function( config )
 	Module.config = vim.tbl_deep_extend( "force", {}, Module.config, config or {} )
-	_state.buffers.configure = vim.api.nvim_create_buf( false, false )
-	vim.api.nvim_buf_set_name( _state.buffers.configure, "larry_configure" )
-	vim.api.nvim_buf_set_option( _state.buffers.configure, "buftype", "nowrite" )
-	vim.api.nvim_buf_set_option( _state.buffers.configure, "scrollback", 1000 )
 
-	_state.buffers.build = vim.api.nvim_create_buf( false, false )
-	vim.api.nvim_buf_set_name( _state.buffers.build, "larry_build" )
-	vim.api.nvim_buf_set_option( _state.buffers.build, "buftype", "nowrite" )
-	vim.api.nvim_buf_set_option( _state.buffers.build, "scrollback", 10000 )
+	_state.buffers.configure = _find_or_create_buffer( "larry_configure" )
+	_state.buffers.build = _find_or_create_buffer( "larry_build" )
 
 	_state.has_terminal_plugin, _ = pcall(require, "terminal")
 
