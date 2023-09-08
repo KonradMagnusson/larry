@@ -258,6 +258,7 @@ end
 local _find_or_create_buffer = function( name )
 	local buf = vim.fn.bufadd( name )
 	vim.fn.bufload( buf )
+	vim.api.nvim_buf_set_option( buf, "swapfile", false )
 	vim.api.nvim_buf_set_option( buf, "buftype", "nowrite" )
 	vim.api.nvim_buf_set_option( buf, "modifiable", false )
 	return buf
@@ -280,6 +281,7 @@ Module.setup = function( config )
 				if bufname == "larry_build" or bufname == "larry_configure" then
 					require("terminal").setup()
 					vim.cmd("setl filetype=terminal")
+					vim.cmd("setl concealcursor=nvic")
 				end
 			end
 		})
