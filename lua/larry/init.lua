@@ -1,10 +1,13 @@
 local Module = {}
 
+local log = require("larry.log")
+
 Module.config = {
 	available_presets = function( cwd ) return {} end,
 	default_preset = "release",
 	build_command = "build %s",
 	configure_command = "configure %s",
+	notification_timeout = 5000
 }
 
 local _state = {
@@ -28,31 +31,6 @@ local _state = {
 }
 
 
-local _log = {
-	build_info = function( msg, timeout, replace )
-			return vim.notify( msg, vim.log.levels.INFO,
-				{
-					title="Larry",
-					icon="󰣪",
-					timeout = timeout,
-					replace = replace
-				})
-		end,
-	configure_info = function( msg, timeout, replace )
-			return vim.notify( msg, vim.log.levels.INFO,
-				{
-					title="Larry",
-					icon="󰒓",
-					timeout = timeout,
-					replace = replace
-				})
-		end,
-	info = function( msg ) vim.notify( msg, vim.log.levels.INFO ) end,
-	warn = function( msg ) vim.notify( msg, vim.log.levels.WARN ) end,
-	error = function( msg ) vim.notify( msg, vim.log.levels.ERROR ) end,
-}
-
-
 Module.GetBuildStatusPerc = function()
 	return _state.buildstatus.percent
 end
@@ -72,12 +50,12 @@ Module.SelectPreset = function()
 	local presets = Module.config.available_presets( vim.fn.getcwd() )
 
 	if #presets == 0 then
-		_log.error( "No presets available! Was setup() called?" )
+		log.error( "No presets available! Was setup() called?" )
 		return
 	end
 
 	local apply_selection = function( preset )
-		_log.info( "Selected preset " .. preset)
+		log.info( "Selected preset " .. preset)
 		vim.g.LARRY_SELECTED_PRESET = preset
 	end
 
@@ -89,7 +67,7 @@ Module.ToggleConfigureView = function()
 	local configure_buf = _state.buffers.configure
 
 	if configure_buf == -1 then
-		_log.error( "Failed to toggle configure view: setup() has not been invoked yet!" )
+		log.configure_error( "Failed to toggle configure view: setup() has not been invoked yet!" )
 		return
 	end
 
@@ -100,7 +78,7 @@ Module.ToggleConfigureView = function()
 
 	if cur_buf == configure_buf then
 		if prev_buf == nil then
-			_log.error( "Failed to toggle configure view: No other buffer was open!?" )
+			log.configure_error( "Failed to toggle configure view: No other buffer was open!?" )
 			return
 		end
 		set_buf(prev_buf)
@@ -127,7 +105,7 @@ Module.ToggleBuildView = function()
 	local build_buf = _state.buffers.build
 
 	if build_buf == -1 then
-		_log.error( "Failed to toggle build view: setup() has not been invoked yet!" )
+		log.error( "Failed to toggle build view: setup() has not been invoked yet!" )
 		return
 	end
 
@@ -138,7 +116,7 @@ Module.ToggleBuildView = function()
 
 	if cur_buf == build_buf then
 		if prev_buf == nil then
-			_log.error( "Failed to toggle build view: No other buffer was open!?" )
+			log.build_error( "Failed to toggle build view: No other buffer was open!?" )
 			return
 		end
 		set_buf(prev_buf)
@@ -163,11 +141,11 @@ end
 
 Module.Configure = function()
 	if _state.jobs.configure ~= nil then
-		_log.error( "Configure in progress!" )
+		log.configure_error( "Configure in progress!" )
 		return
 	end
 
-	local configuring_notification = _log.configure_info( "Configuring " .. Module.GetSelectedPreset() )
+	local configuring_notification = log.configure_info( "Configuring " .. Module.GetSelectedPreset() )
 	local buf = _state.buffers.configure
 
 	local on_stdout = function( _, data, _ )
@@ -190,10 +168,10 @@ Module.Configure = function()
 	local on_exit = function( _, exit_code, _ )
 		_state.jobs.configure = nil
 		if exit_code  ~= 0 then
-			_log.error( "Configure failed!" )
+			log.configure_error( "Configure failed!", Module.config.notification_timeout, configuring_notification )
 			return
 		end
-		_log.configure_info( "Configure done!", 1000, configuring_notification.id )
+		log.configure_info( "Configure done!", Module.config.notification_timeout, configuring_notification )
 	end
 
 	vim.api.nvim_buf_set_option( buf, "modifiable", true )
@@ -215,11 +193,11 @@ end
 
 Module.Build = function()
 	if _state.jobs.build ~= nil then
-		_log.error( "Build in progress!" )
+		log.build_error( "Build in progress!" )
 		return
 	end
 
-	local build_notification = _log.build_info( "Building " .. Module.GetSelectedPreset(), false )
+	local build_notification = log.build_info( "Building " .. Module.GetSelectedPreset(), false )
 
 	local buf = _state.buffers.build
 
@@ -255,10 +233,10 @@ Module.Build = function()
 	local on_exit = function( _, exit_code, _ )
 		_state.jobs.build = nil
 		if exit_code  ~= 0 then
-			_log.error( "Build failed!" )
+			log.build_error( "Build failed!", Module.config.notification_timeout, build_notification  )
 			return
 		end
-		_log.build_info( "Build finished!", 1000, build_notification.id )
+		log.build_info( "Build finished!", Module.config.notification_timeout, build_notification )
 	end
 
 	vim.api.nvim_buf_set_option( buf, "modifiable", true )
