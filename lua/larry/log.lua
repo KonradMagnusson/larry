@@ -20,4 +20,6 @@ Log.configure_info = make_log_fn( "󰒓", vim.log.levels.INFO )
 Log.configure_warn = make_log_fn( "󰒓", vim.log.levels.WARN )
 Log.configure_error = make_log_fn( "󰒓", vim.log.levels.ERROR )
 
+Log.info = make_log_fn( '!', vim.log.levels.INFO )
+
 return Log
